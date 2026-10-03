@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<style>
+  html,body{margin:0;padding:0;background:#ffffff}
+  svg{display:block;font-family:Inter,"DejaVu Sans",Arial,sans-serif}
+  .h{font-size:15px;font-weight:800;fill:#ffffff}
+  .b{font-size:13.5px;fill:#0B1F3A}
+  .bb{font-size:13.5px;font-weight:700;fill:#0B1F3A}
+  .s{font-size:12.5px;fill:#475569}
+  .lane{font-size:16px;font-weight:800}
+  .res{font-size:14px;font-weight:700}
+</style></head>
+<body>
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ar" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="14" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 z" fill="#334155"/></marker>
+    <marker id="arG" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="16" refY="9" orient="auto"><path d="M0,0 L18,9 L0,18 z" fill="#E8820C"/></marker>
+  </defs>
+
+  <text x="40" y="50" font-size="26" font-weight="800" fill="#0B1F3A">Infraestructura 2 · Cómo viaja el tráfico con el túnel activo y con el túnel caído</text>
+  <text x="40" y="78" font-size="15" fill="#475569">R-USERS (Cisco) tiene dos rutas hacia 10.8.13.0/28: por Tunnel0 (distancia 1) y a Null0 (distancia 254). Si el túnel cae, gana Null0 y el tráfico se descarta.</text>
+
+  <!-- ============ CARRIL 1: TÚNEL ACTIVO ============ -->
+  <rect x="30" y="112" width="1540" height="232" rx="16" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="2"/>
+  <rect x="50" y="126" width="196" height="30" rx="15" fill="#16A34A"/>
+  <text x="148" y="146" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">① TÚNEL ACTIVO</text>
+
+  <!-- PC -->
+  <rect x="50" y="172" width="200" height="110" rx="12" fill="#fff" stroke="#93C5FD" stroke-width="2"/>
+  <rect x="50" y="172" width="200" height="30" rx="12" fill="#1D6FE0"/><rect x="50" y="190" width="200" height="12" fill="#1D6FE0"/>
+  <text x="150" y="193" text-anchor="middle" class="h">PC-USER</text>
+  <text x="150" y="226" text-anchor="middle" class="bb">10.20.25.10</text>
+  <text x="150" y="248" text-anchor="middle" class="s">curl -kI https://10.8.13.10</text>
+  <text x="150" y="268" text-anchor="middle" class="s">ping · traceroute</text>
+  <!-- R-USERS -->
+  <rect x="320" y="172" width="310" height="140" rx="12" fill="#fff" stroke="#5EEAD4" stroke-width="2"/>
+  <rect x="320" y="172" width="310" height="30" rx="12" fill="#0E7C86"/><rect x="320" y="190" width="310" height="12" fill="#0E7C86"/>
+  <text x="475" y="193" text-anchor="middle" class="h">R-USERS (Cisco)</text>
+  <text x="336" y="224" class="b">ACL <tspan font-weight="700">NAT-INTERNET</tspan>: deny → sin NAT</text>
+  <rect x="334" y="236" width="282" height="26" rx="6" fill="#DCFCE7"/>
+  <text x="344" y="254" class="b">✔ 10.8.13.0/28 → Tunnel0 · dist. 1</text>
+  <text x="344" y="284" class="s" text-decoration="line-through">10.8.13.0/28 → Null0 · dist. 254</text>
+  <text x="344" y="302" class="s">(queda de respaldo, no se usa)</text>
+  <!-- ISP -->
+  <rect x="700" y="172" width="250" height="110" rx="12" fill="#fff" stroke="#5EEAD4" stroke-width="2"/>
+  <rect x="700" y="172" width="250" height="30" rx="12" fill="#0E7C86"/><rect x="700" y="190" width="250" height="12" fill="#0E7C86"/>
+  <text x="825" y="193" text-anchor="middle" class="h">ISP</text>
+  <text x="825" y="226" text-anchor="middle" class="b">Solo ve paquetes <tspan font-weight="700">ESP</tspan></text>
+  <text x="825" y="248" text-anchor="middle" class="bb">20.25.8.2 ⇄ 20.25.8.13</text>
+  <text x="825" y="268" text-anchor="middle" class="s">contenido cifrado (DES-SHA1)</text>
+  <!-- FGT-B -->
+  <rect x="1020" y="172" width="240" height="110" rx="12" fill="#fff" stroke="#FCA5A5" stroke-width="2"/>
+  <rect x="1020" y="172" width="240" height="30" rx="12" fill="#DA291C"/><rect x="1020" y="190" width="240" height="12" fill="#DA291C"/>
+  <text x="1140" y="193" text-anchor="middle" class="h">FGT-B</text>
+  <text x="1140" y="226" text-anchor="middle" class="b">Descifra (VPN-B-A)</text>
+  <text x="1140" y="248" text-anchor="middle" class="b">Política <tspan font-weight="700">VPN-to-SERVER</tspan></text>
+  <text x="1140" y="268" text-anchor="middle" class="s">sin NAT</text>
+  <!-- SRV -->
+  <rect x="1330" y="172" width="220" height="110" rx="12" fill="#fff" stroke="#86EFAC" stroke-width="2"/>
+  <rect x="1330" y="172" width="220" height="30" rx="12" fill="#15803D"/><rect x="1330" y="190" width="220" height="12" fill="#15803D"/>
+  <text x="1440" y="193" text-anchor="middle" class="h">SRV-WEB</text>
+  <text x="1440" y="226" text-anchor="middle" class="bb">10.8.13.10</text>
+  <text x="1440" y="248" text-anchor="middle" class="b">Apache · HTTPS 443</text>
+  <text x="1440" y="268" text-anchor="middle" class="s">responde por el mismo túnel</text>
+  <!-- flechas -->
+  <line x1="252" y1="227" x2="314" y2="227" stroke="#334155" stroke-width="3" marker-end="url(#ar)"/>
+  <line x1="632" y1="227" x2="694" y2="227" stroke="#E8820C" stroke-width="4" stroke-dasharray="10 6" marker-end="url(#arG)"/>
+  <line x1="952" y1="227" x2="1014" y2="227" stroke="#E8820C" stroke-width="4" stroke-dasharray="10 6" marker-end="url(#arG)"/>
+  <line x1="1262" y1="227" x2="1324" y2="227" stroke="#334155" stroke-width="3" marker-end="url(#ar)"/>
+  <text x="1550" y="332" text-anchor="end" class="res" fill="#15803D">Resultado: ping responde · curl → HTTP/1.1 200 OK · traceroute en 3 saltos (10.20.25.1 → 10.25.8.13 → 10.8.13.10)</text>
+
+  <!-- ============ CARRIL 2: TÚNEL CAÍDO ============ -->
+  <rect x="30" y="362" width="1540" height="232" rx="16" fill="#FEF2F2" stroke="#FECACA" stroke-width="2"/>
+  <rect x="50" y="376" width="560" height="30" rx="15" fill="#DC2626"/>
+  <text x="330" y="396" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">② TÚNEL CAÍDO (Bring Down + VPN-B-A deshabilitada en FGT-B)</text>
+
+  <rect x="50" y="422" width="200" height="110" rx="12" fill="#fff" stroke="#93C5FD" stroke-width="2"/>
+  <rect x="50" y="422" width="200" height="30" rx="12" fill="#1D6FE0"/><rect x="50" y="440" width="200" height="12" fill="#1D6FE0"/>
+  <text x="150" y="443" text-anchor="middle" class="h">PC-USER</text>
+  <text x="150" y="476" text-anchor="middle" class="bb">10.20.25.10</text>
+  <text x="150" y="498" text-anchor="middle" class="s">mismas pruebas</text>
+  <text x="150" y="518" text-anchor="middle" class="s">hacia 10.8.13.10</text>
+
+  <rect x="320" y="422" width="310" height="140" rx="12" fill="#fff" stroke="#5EEAD4" stroke-width="2"/>
+  <rect x="320" y="422" width="310" height="30" rx="12" fill="#0E7C86"/><rect x="320" y="440" width="310" height="12" fill="#0E7C86"/>
+  <text x="475" y="443" text-anchor="middle" class="h">R-USERS (Cisco)</text>
+  <text x="336" y="476" class="s" text-decoration="line-through">10.8.13.0/28 → Tunnel0 · dist. 1</text>
+  <text x="336" y="494" class="s">(desaparece al caer el túnel)</text>
+  <rect x="334" y="504" width="282" height="26" rx="6" fill="#FEE2E2"/>
+  <text x="344" y="522" class="b">✔ 10.8.13.0/28 → Null0 · dist. 254</text>
+  <text x="336" y="550" class="bb" fill="#B91C1C">El paquete se descarta aquí</text>
+
+  <g opacity="0.33">
+    <rect x="700" y="422" width="250" height="110" rx="12" fill="#fff" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 5"/>
+    <text x="825" y="472" text-anchor="middle" class="bb">ISP</text>
+    <text x="825" y="494" text-anchor="middle" class="s">no recibe nada en claro</text>
+    <rect x="1020" y="422" width="240" height="110" rx="12" fill="#fff" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 5"/>
+    <text x="1140" y="482" text-anchor="middle" class="bb">FGT-B</text>
+    <rect x="1330" y="422" width="220" height="110" rx="12" fill="#fff" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 5"/>
+    <text x="1440" y="482" text-anchor="middle" class="bb">SRV-WEB</text>
+  </g>
+  <line x1="252" y1="477" x2="314" y2="477" stroke="#334155" stroke-width="3" marker-end="url(#ar)"/>
+  <g transform="translate(664,477)">
+    <circle r="22" fill="#DC2626"/>
+    <path d="M-9 -9 L9 9 M9 -9 L-9 9" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/>
+  </g>
+  <text x="1550" y="582" text-anchor="end" class="res" fill="#B91C1C">Resultado: ping → «Destination Host Unreachable» desde 10.20.25.1 (ruta a Null0) · curl no conecta  →  sin VPN no hay comunicación</text>
+
+  <!-- ============ CARRIL 3: INTERNET CON NAT ============ -->
+  <rect x="30" y="612" width="1540" height="200" rx="16" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="2"/>
+  <rect x="50" y="626" width="370" height="30" rx="15" fill="#1D4ED8"/>
+  <text x="235" y="646" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">③ SALIDA A «INTERNET» (en los dos casos)</text>
+
+  <rect x="50" y="672" width="200" height="110" rx="12" fill="#fff" stroke="#93C5FD" stroke-width="2"/>
+  <rect x="50" y="672" width="200" height="30" rx="12" fill="#1D6FE0"/><rect x="50" y="690" width="200" height="12" fill="#1D6FE0"/>
+  <text x="150" y="693" text-anchor="middle" class="h">PC-USER</text>
+  <text x="150" y="726" text-anchor="middle" class="bb">10.20.25.10</text>
+  <text x="150" y="748" text-anchor="middle" class="s">ping -c 3 20.25.8.8</text>
+
+  <rect x="320" y="672" width="310" height="110" rx="12" fill="#fff" stroke="#5EEAD4" stroke-width="2"/>
+  <rect x="320" y="672" width="310" height="30" rx="12" fill="#0E7C86"/><rect x="320" y="690" width="310" height="12" fill="#0E7C86"/>
+  <text x="475" y="693" text-anchor="middle" class="h">R-USERS (Cisco)</text>
+  <text x="336" y="726" class="b">ACL <tspan font-weight="700">NAT-INTERNET</tspan>: permit</text>
+  <text x="336" y="748" class="b">PAT: origen 10.20.25.10 → <tspan font-weight="700">20.25.8.2</tspan></text>
+  <text x="336" y="768" class="s">ruta por defecto → 20.25.8.1 (ISP)</text>
+
+  <rect x="700" y="672" width="250" height="110" rx="12" fill="#fff" stroke="#5EEAD4" stroke-width="2"/>
+  <rect x="700" y="672" width="250" height="30" rx="12" fill="#0E7C86"/><rect x="700" y="690" width="250" height="12" fill="#0E7C86"/>
+  <text x="825" y="693" text-anchor="middle" class="h">ISP · Lo0 20.25.8.8</text>
+  <text x="825" y="726" text-anchor="middle" class="b">la respuesta va a</text>
+  <text x="825" y="748" text-anchor="middle" class="bb">20.25.8.2 (WAN de R-USERS)</text>
+  <text x="825" y="768" text-anchor="middle" class="s">nunca ve la IP privada</text>
+
+  <line x1="252" y1="727" x2="314" y2="727" stroke="#334155" stroke-width="3" marker-end="url(#ar)"/>
+  <line x1="632" y1="727" x2="694" y2="727" stroke="#334155" stroke-width="3" marker-end="url(#ar)"/>
+
+  <rect x="1010" y="684" width="540" height="86" rx="12" fill="#ffffff" stroke="#BFDBFE" stroke-width="2"/>
+  <text x="1030" y="714" class="bb">Por qué importa</text>
+  <text x="1030" y="736" class="b">El ISP no tiene ruta hacia 10.20.25.0/25: la respuesta solo</text>
+  <text x="1030" y="756" class="b">vuelve porque R-USERS traduce el origen a su IP pública.</text>
+
+  <text x="40" y="858" font-size="13.5" fill="#475569">En el Cisco, la ACL NAT-INTERNET excluye del NAT el tráfico hacia 10.8.13.0/28 y Tunnel0 no es interfaz NAT; en FGT-B las políticas de la VPN no llevan NAT.</text>
+</svg>
+</body></html>

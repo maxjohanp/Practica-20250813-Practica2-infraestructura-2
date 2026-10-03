@@ -1,0 +1,161 @@
+# =============================================================================
+#  FGT-B · borde de la sede del servidor · FortiGate-VM 7.0.9
+#  Seguridad de Redes · Infraestructuras 1 y 2 · Maxyohan Montas (2025-0813)
+#
+#  IMPORTANTE: en el laboratorio TODO se configuró por la GUI (ver el informe).
+#  Este archivo es el EQUIVALENTE EN CLI, sacado de la running-config real
+#  (configs/FGT-B_running-config.txt), para poder reproducir el equipo desde
+#  cero pegándolo en la consola.
+#
+#  En la Infraestructura 2 FGT-B NO cambia: su par 20.25.8.2 ahora es el
+#  Cisco R-USERS (antes era FGT-A, con la misma IP).
+#
+#  Antes de pegarlo: sustituye <CLAVE-PRECOMPARTIDA> por la clave del túnel
+#  (la misma en FGT-B y en R-USERS). La clave no se publica en el repositorio.
+#
+#  FGT-B no lleva servidor DHCP: SRV-WEB tiene IP fija.
+#
+#  Bloques (en orden) y su menú en la GUI:
+#    config system global ............ System > Settings (zona horaria por CLI)
+#    config system interface ......... Network > Interfaces
+#    config firewall address ......... Policy & Objects > Addresses
+#    config vpn ipsec phase1/phase2 .. VPN > IPsec Tunnels > Create New > Custom
+#    config system interface (túnel) . Network > Interfaces > VPN-B-A
+#    config router static ............ Network > Static Routes
+#    config firewall policy .......... Policy & Objects > Firewall Policy
+#
+#  Valores de fábrica escritos de forma explícita para documentar el perfil
+#  (no salen en la running-config): ike-version 1, mode main, nattraversal
+#  enable, keepalive 10, dpd on-demand, keylife 86400, pfs enable, replay
+#  enable, keylifeseconds 43200 y los selectores 0.0.0.0/0.
+#
+#  Copia desde «config system global» hasta el final y pégalo en la consola.
+#  Las líneas con # de esta cabecera son solo explicación: no las pegues.
+#
+# =============================================================================
+
+config system global
+    set hostname "FGT-B"
+    set timezone 15
+    set admintimeout 480
+end
+
+config system interface
+    edit "port1"
+        set alias "LAN-SRV"
+        set mode static
+        set ip 10.8.13.1 255.255.255.240
+        set allowaccess ping https ssh http
+    next
+    edit "port2"
+        set alias "WAN"
+        set role wan
+        set mode static
+        set ip 20.25.8.13 255.255.255.252
+        set allowaccess ping
+    next
+end
+
+config firewall address
+    edit "NET-USERS"
+        set subnet 10.20.25.0 255.255.255.128
+    next
+    edit "NET-SERVER"
+        set subnet 10.8.13.0 255.255.255.240
+    next
+end
+
+config vpn ipsec phase1-interface
+    edit "VPN-B-A"
+        set interface "port2"
+        set ike-version 1
+        set mode main
+        set peertype any
+        set net-device disable
+        set proposal des-sha1
+        set dhgrp 2
+        set nattraversal enable
+        set keepalive 10
+        set dpd on-demand
+        set keylife 86400
+        set remote-gw 20.25.8.2
+        set psksecret <CLAVE-PRECOMPARTIDA>
+    next
+end
+config vpn ipsec phase2-interface
+    edit "VPN-B-A"
+        set phase1name "VPN-B-A"
+        set proposal des-sha1
+        set pfs enable
+        set dhgrp 2
+        set replay enable
+        set auto-negotiate enable
+        set keylifeseconds 43200
+        set src-subnet 0.0.0.0 0.0.0.0
+        set dst-subnet 0.0.0.0 0.0.0.0
+    next
+end
+
+config system interface
+    edit "VPN-B-A"
+        set ip 10.25.8.13 255.255.255.255
+        set remote-ip 10.25.8.14 255.255.255.252
+        set allowaccess ping
+    next
+end
+
+config router static
+    edit 1
+        set gateway 20.25.8.14
+        set device "port2"
+    next
+    edit 2
+        set dst 10.20.25.0 255.255.255.128
+        set device "VPN-B-A"
+    next
+    edit 3
+        set dst 10.20.25.0 255.255.255.128
+        set distance 254
+        set blackhole enable
+    next
+end
+
+config firewall policy
+    edit 1
+        set name "VPN-to-SERVER"
+        set srcintf "VPN-B-A"
+        set dstintf "port1"
+        set action accept
+        set srcaddr "NET-USERS"
+        set dstaddr "NET-SERVER"
+        set schedule "always"
+        set service "HTTPS" "PING" "TRACEROUTE"
+        set logtraffic all
+    next
+    edit 2
+        set name "SERVER-to-VPN"
+        set srcintf "port1"
+        set dstintf "VPN-B-A"
+        set action accept
+        set srcaddr "NET-SERVER"
+        set dstaddr "NET-USERS"
+        set schedule "always"
+        set service "HTTPS" "PING" "TRACEROUTE"
+        set logtraffic all
+    next
+    edit 3
+        set name "SERVER-to-INTERNET"
+        set srcintf "port1"
+        set dstintf "port2"
+        set action accept
+        set srcaddr "NET-SERVER"
+        set dstaddr "all"
+        set schedule "always"
+        set service "ALL"
+        set logtraffic all
+        set nat enable
+    next
+end
+
+get vpn ipsec tunnel summary
+get router info routing-table all

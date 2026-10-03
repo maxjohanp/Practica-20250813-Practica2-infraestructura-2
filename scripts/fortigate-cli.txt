@@ -1,0 +1,43 @@
+# =============================================================================
+#  FortiGate FGT-B · comandos de CLI usados
+#  Seguridad de Redes · Infraestructura 2 · Maxyohan Montas (2025-0813)
+#
+#  Toda la configuración de FGT-B se hizo por la GUI (en la Infra 1) y no cambia
+#  en la Infra 2. La CLI solo se usó para lo siguiente. El equivalente en CLI
+#  de toda su configuración está en fgt-b-config-cli.txt.
+#  Las líneas con # son explicación: copia solo los comandos de cada bloque.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1) Zona horaria (consola CLI de la GUI, icono >_ ).
+#    La página System > Settings se quedaba cargando con la licencia de
+#    evaluación. El índice 15 es (GMT-4:00) La Paz = misma hora que Santo Domingo.
+# -----------------------------------------------------------------------------
+config system global
+    set timezone 15
+end
+execute time
+
+# -----------------------------------------------------------------------------
+# 2) Exportar la configuración en ejecución (consola del nodo en GNS3).
+#    La salida se guardó en configs/FGT-B_running-config.txt, con la clave
+#    del túnel (psksecret) eliminada.
+# -----------------------------------------------------------------------------
+config system console
+    set output standard
+end
+show system global
+show system interface
+show firewall address NET-USERS
+show firewall address NET-SERVER
+show vpn ipsec phase1-interface
+show vpn ipsec phase2-interface
+show router static
+show firewall policy
+
+# -----------------------------------------------------------------------------
+# 3) Verificación del túnel desde la CLI (opcional)
+# -----------------------------------------------------------------------------
+get vpn ipsec tunnel summary
+diagnose vpn tunnel list
+get router info routing-table all

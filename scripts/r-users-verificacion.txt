@@ -1,0 +1,32 @@
+! =============================================================================
+!  R-USERS · comandos de verificación usados en la Infraestructura 2
+!  Seguridad de Redes · Maxyohan Montas (2025-0813)
+!  Las líneas que empiezan con ! son explicación.
+! =============================================================================
+!
+! ---- Túnel ----
+! Debe salir 20.25.8.13 en QM_IDLE / ACTIVE
+show crypto isakmp sa
+! encaps y decaps deben subir al hacer ping desde PC-USER
+show crypto ipsec sa | include pkts
+show interface Tunnel0 | include line|Tunnel protocol
+ping 10.8.13.10 source FastEthernet0/1.10 repeat 5
+!
+! ---- Rutas: la red del servidor va por Tunnel0 (Null0 solo si cae) ----
+show ip route 10.8.13.10
+show ip cef 10.8.13.10
+!
+! ---- NAT y DHCP ----
+! La línea deny (hacia 10.8.13.0/28) no debe tener coincidencias
+show access-lists NAT-INTERNET
+! Solo aparecen conexiones hacia Internet
+show ip nat translations
+! La IP entregada a PC-USER
+show ip dhcp binding
+!
+! ---- Reiniciar la sesión IPsec si el túnel queda inestable ----
+clear crypto session
+!
+! ---- Exportar la configuración ----
+terminal length 0
+show running-config

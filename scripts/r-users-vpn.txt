@@ -1,0 +1,65 @@
+! =============================================================================
+!  R-USERS · VPN IPsec sitio a sitio hacia FGT-B (interfaz de túnel VTI)
+!  Nodo GNS3: R1 · Cisco 7200 (Dynamips) · IOS 15.2(4)S6
+!  Seguridad de Redes · Infraestructura 2 · Maxyohan Montas (2025-0813)
+!
+!  Perfil B, igual que FGT-B: IKEv1 modo Main · DES · SHA-1 · DH grupo 2 ·
+!  PFS grupo 2 · vida 86 400 s (fase 1) y 43 200 s (fase 2).
+!  (IOS no admite DES en IKEv2: por eso IKEv1, como en el FortiGate.)
+!
+!  Antes de pegarlo: sustituye <CLAVE-PRECOMPARTIDA> por la clave del túnel
+!  (la misma que en FGT-B). La clave no se publica en el repositorio.
+! =============================================================================
+enable
+configure terminal
+!
+! ---- Fase 1 (ISAKMP / IKEv1) ----
+crypto isakmp policy 10
+ encryption des
+ hash sha
+ authentication pre-share
+ group 2
+ lifetime 86400
+ exit
+crypto isakmp key <CLAVE-PRECOMPARTIDA> address 20.25.8.13
+!
+! ---- Fase 2 (IPsec / ESP) ----
+crypto ipsec transform-set TS-FGT esp-des esp-sha-hmac
+ mode tunnel
+ exit
+crypto ipsec profile PROF-FGT
+ set transform-set TS-FGT
+ set pfs group2
+ set security-association lifetime seconds 43200
+ exit
+!
+! ---- Interfaz de túnel (VTI) hacia FGT-B ----
+interface Tunnel0
+ description VPN IPsec hacia FGT-B (20.25.8.13)
+ ip address 10.25.8.14 255.255.255.252
+ ip tcp adjust-mss 1360
+ tunnel source FastEthernet0/0
+ tunnel mode ipsec ipv4
+ tunnel destination 20.25.8.13
+ tunnel protection ipsec profile PROF-FGT
+ exit
+!
+! ---- Rutas hacia la red del servidor ----
+! Por el túnel; y, si el túnel cae, a Null0 (distancia 254): el tráfico se
+! descarta en el Cisco y nunca sale en claro hacia el ISP. Es el equivalente
+! de la ruta blackhole de los FortiGate.
+ip route 10.8.13.0 255.255.255.240 Tunnel0
+ip route 10.8.13.0 255.255.255.240 Null0 254
+!
+! ---- Ajuste necesario en el Cisco emulado (Dynamips) ----
+! Con CEF activo, el router cifraba su propio tráfico pero NO el que reenviaba
+! desde la LAN (encaps quedaba en 0). Sin CEF, el tráfico de los usuarios
+! entra al túnel. Solo es necesario en el laboratorio emulado.
+no ip cef
+!
+end
+write memory
+!
+! Verificación (ver r-users-verificacion.txt)
+ping 10.8.13.10 source FastEthernet0/1.10 repeat 5
+show crypto isakmp sa
